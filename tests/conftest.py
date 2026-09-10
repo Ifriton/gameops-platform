@@ -7,8 +7,8 @@ from fastapi.testclient import TestClient
 # unless its required key is configured.
 os.environ.setdefault("GAMEOPS_API_KEY", "test-import-key")
 
-from app.config import Settings
-from app.main import create_app
+from app.config import Settings  # noqa: E402
+from app.main import create_app  # noqa: E402
 
 API_KEY = "test-api-key"
 
