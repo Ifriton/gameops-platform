@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gameops-config
+  namespace: gameops
+  labels:
+    app.kubernetes.io/name: gameops-platform
+data:
+  APP_ENV: kubernetes-demo
+  DATABASE_URL: sqlite:////tmp/gameops/gameops.db
+  LOG_LEVEL: INFO
