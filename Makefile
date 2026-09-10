@@ -2,7 +2,7 @@
 IMAGE := gameops-platform:local
 NAMESPACE := gameops
 
-.PHONY: help install dev test lint format docker-build docker-up docker-down kind-up kind-down terraform-init terraform-plan terraform-apply terraform-destroy k8s-deploy k8s-status k8s-port-forward
+.PHONY: help install dev test lint format docker-build docker-up docker-down kind-up kind-down terraform-init terraform-plan terraform-apply terraform-destroy require-api-key k8s-deploy k8s-status k8s-port-forward
 
 help: ## Show available commands
 	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make <target>\n\n"} /^[a-zA-Z_-]+:.*?## / {printf "  %-24s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -26,7 +26,7 @@ format: ## Format Python files
 docker-build: ## Build the local image
 	docker build -t $(IMAGE) .
 
-docker-up: ## Start API and PostgreSQL
+docker-up: require-api-key ## Start API and PostgreSQL
 	docker compose up --build -d
 
 docker-down: ## Stop Compose services
@@ -50,9 +50,12 @@ terraform-apply: ## Apply platform resources
 terraform-destroy: ## Destroy Terraform-owned resources
 	terraform -chdir=terraform destroy
 
-k8s-deploy: docker-build ## Load and deploy the application image
+require-api-key:
+	@test -n "$$GAMEOPS_API_KEY" || (echo "GAMEOPS_API_KEY must be set" && exit 1)
+
+k8s-deploy: require-api-key docker-build ## Load and deploy the application image
 	kind load docker-image $(IMAGE) --name gameops
-	kubectl -n $(NAMESPACE) create secret generic gameops-api-key --from-literal=api-key="$${GAMEOPS_API_KEY:-development-key}" --dry-run=client -o yaml | kubectl apply -f -
+	@kubectl -n $(NAMESPACE) create secret generic gameops-api-key --from-literal=api-key="$$GAMEOPS_API_KEY" --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -f kubernetes/configmap.yaml -f kubernetes/deployment.yaml -f kubernetes/service.yaml
 	kubectl rollout status deployment/gameops-api -n $(NAMESPACE) --timeout=120s
 

@@ -1,7 +1,11 @@
 .env
+.env.*
+!.env.example
 .venv/
 venv/
 __pycache__/
+**/__pycache__/
+*.pyc
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
@@ -14,6 +18,7 @@ htmlcov/
 .vscode/
 .DS_Store
 .terraform/
+terraform/.terraform/
 *.tfstate
 *.tfstate.*
 crash.log

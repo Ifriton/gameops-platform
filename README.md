@@ -48,15 +48,18 @@ The API uses `sqlite:///./gameops.db` by default. Open Swagger UI at <http://loc
 ## Docker Compose quick start
 
 ```bash
-docker compose up --build
+export GAMEOPS_API_KEY='replace-with-your-local-api-key'
+docker compose up --build -d
+
 curl http://localhost:8000/readyz
+
 docker compose down
 ```
 
-Compose runs the API with PostgreSQL and waits for `pg_isready`. The default password and API key are obvious **local-development values only**. Override them without editing tracked files:
+Compose runs the API with PostgreSQL and waits for `pg_isready`. `GAMEOPS_API_KEY` is required explicitly. The database password has an obvious **local-development fallback**; to override it, export a different value before starting Compose:
 
 ```bash
-POSTGRES_PASSWORD='replace-me' GAMEOPS_API_KEY='replace-me' docker compose up --build
+export POSTGRES_PASSWORD='replace-with-a-local-password'
 ```
 
 ## Kubernetes + kind quick start
@@ -67,7 +70,7 @@ Prerequisites: Docker, kind, kubectl, Terraform, and GNU Make.
 make kind-up
 make terraform-init
 make terraform-apply
-export GAMEOPS_API_KEY='replace-with-a-development-key'
+export GAMEOPS_API_KEY='replace-with-your-local-api-key'
 make k8s-deploy
 make k8s-status
 make k8s-port-forward
@@ -98,7 +101,7 @@ Terraform creates the `gameops` namespace, `ResourceQuota`, `LimitRange`, and ap
 ```bash
 kubectl create secret generic gameops-api-key \
   --namespace gameops \
-  --from-literal=api-key='replace-with-a-development-key'
+  --from-literal=api-key="${GAMEOPS_API_KEY}"
 ```
 
 ## API examples
@@ -111,12 +114,18 @@ curl http://localhost:8000/readyz
 curl http://localhost:8000/api/v1/servers
 ```
 
+Set the same API key used to start the application before running write examples:
+
+```bash
+export GAMEOPS_API_KEY='replace-with-your-local-api-key'
+```
+
 Create a server:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/servers \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: development-key" \
+  -H "X-API-Key: ${GAMEOPS_API_KEY}" \
   -d '{
     "name": "rp-server-01",
     "region": "us-east",
@@ -129,7 +138,7 @@ Update status and player count, replacing `SERVER_ID` with the returned UUID:
 ```bash
 curl -X PATCH http://localhost:8000/api/v1/servers/SERVER_ID \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: development-key" \
+  -H "X-API-Key: ${GAMEOPS_API_KEY}" \
   -d '{"status":"online","players":37}'
 ```
 
@@ -137,7 +146,7 @@ Delete a server:
 
 ```bash
 curl -X DELETE http://localhost:8000/api/v1/servers/SERVER_ID \
-  -H "X-API-Key: development-key"
+  -H "X-API-Key: ${GAMEOPS_API_KEY}"
 ```
 
 `scripts/demo.sh` performs a repeat-friendly health check and creates sample inventory. A duplicate name produces a readable conflict but does not stop the demo.

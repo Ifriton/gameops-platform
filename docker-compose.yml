@@ -19,7 +19,7 @@ services:
     environment:
       APP_ENV: development
       DATABASE_URL: postgresql+psycopg://gameops:${POSTGRES_PASSWORD:-local-development-password}@db:5432/gameops
-      GAMEOPS_API_KEY: ${GAMEOPS_API_KEY:-development-key}
+      GAMEOPS_API_KEY: ${GAMEOPS_API_KEY:?Set GAMEOPS_API_KEY before starting Compose}
       LOG_LEVEL: INFO
     depends_on:
       db:

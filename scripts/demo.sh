@@ -2,7 +2,8 @@
 set -eu
 
 BASE_URL="${BASE_URL:-http://localhost:8000}"
-API_KEY="${GAMEOPS_API_KEY:-development-key}"
+: "${GAMEOPS_API_KEY:?GAMEOPS_API_KEY must be set}"
+API_KEY="$GAMEOPS_API_KEY"
 
 request() {
   curl --fail-with-body --silent --show-error "$@"
