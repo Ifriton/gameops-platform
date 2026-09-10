@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: gameops
+      POSTGRES_USER: gameops
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gameops -d gameops"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  api:
+    build: .
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://gameops:${POSTGRES_PASSWORD:-local-development-password}@db:5432/gameops
+      GAMEOPS_API_KEY: ${GAMEOPS_API_KEY:-development-key}
+      LOG_LEVEL: INFO
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
